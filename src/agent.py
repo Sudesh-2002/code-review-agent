@@ -81,12 +81,16 @@ class CodeReviewAgent:
         # Review each file
         all_reviews = []
         for file in files:
-            review = self.review_file(
-                filename=file["filename"],
-                patch=file["patch"],
-                pr_info=pr_info,
-                file_status=file.get("status", "modified")
-            )
+            try:
+                review = self.review_file(
+                    filename=file["filename"],
+                    patch=file["patch"],
+                    pr_info=pr_info,
+                    file_status=file.get("status", "modified")
+                )
+            except Exception as e:
+                logger.error(f"Skipping {file['filename']} due to error: {e}")
+                review = f"⚠️ Review skipped — LLM error: {type(e).__name__}"
             all_reviews.append(f"### `{file['filename']}`\n{review}")
             logger.debug(f"Done: {file['filename']}")
 
