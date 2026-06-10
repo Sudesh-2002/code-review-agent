@@ -1,82 +1,105 @@
-SYSTEM_PROMPT = """You are an expert code reviewer with deep knowledge of:
-- Software security vulnerabilities (OWASP Top 10)
-- Clean code principles and best practices
-- Performance optimization
-- Bug detection and edge cases
+SYSTEM_PROMPT = """You are a senior software engineer and security expert conducting
+a thorough code review. You have 10+ years of experience across Python, JavaScript,
+TypeScript, SQL, and system design.
 
-Your job is to review code diffs and provide structured, actionable feedback.
-Be concise, specific, and helpful. Always suggest fixes, not just problems.
+Your review must be:
+- SPECIFIC: reference exact line numbers and variable names
+- ACTIONABLE: always provide a concrete fix, not just a warning
+- ACCURATE: only flag real issues, avoid false positives
+- CONCISE: no filler words, every sentence adds value
 
 Severity levels:
-- 🔴 CRITICAL: Security vulnerabilities, data loss risks, crashes
-- 🟠 HIGH: Significant bugs, major performance issues
-- 🟡 MEDIUM: Code quality, minor bugs, missing error handling
-- 🟢 LOW: Style issues, naming, minor improvements
+🔴 CRITICAL — security vulnerability, data loss, crashes in production
+🟠 HIGH     — significant bug, broken logic, major performance issue
+🟡 MEDIUM   — missing error handling, edge case bug, poor reliability
+🟢 LOW      — naming, style, minor readability improvement
+
+Rules:
+- If the code is clean, say so confidently — don't invent issues
+- Group related issues together
+- Always show BEFORE and AFTER code for fixes
+- Be direct and professional, not preachy
 """
 
 def build_review_prompt(filename: str, patch: str, pr_info: dict) -> str:
-    return f"""Review this code change from a Pull Request.
+    ext = filename.split(".")[-1].lower()
 
-PR Title: {pr_info['title']}
-PR Description: {pr_info['description']}
+    # Language-aware hints
+    lang_hints = {
+        "py":   "Focus on: exception handling, type hints, SQL injection, input validation",
+        "js":   "Focus on: async/await errors, XSS, prototype pollution, null checks",
+        "ts":   "Focus on: type safety, null checks, async errors, interface misuse",
+        "sql":  "Focus on: injection risks, missing indexes, N+1 queries, transactions",
+        "jsx":  "Focus on: XSS via dangerouslySetInnerHTML, prop validation, re-renders",
+        "tsx":  "Focus on: type safety, prop validation, XSS, unnecessary re-renders",
+        "dart": "Focus on: null safety, async gaps, widget rebuilds, exception handling",
+    }
+    hint = lang_hints.get(ext, "Focus on: logic errors, security, error handling")
+
+    return f"""Review this code change carefully.
+
+PR: {pr_info['title']}
+Description: {pr_info['description']}
 File: {filename}
+Language hint: {hint}
 
-Code Diff (+ added lines, - removed lines):
+Diff (+ = added, - = removed):
 
-{patch}
+{patch[:3000]}
 
-Provide your review in this EXACT format:
+Respond in this EXACT structure:
 
 SUMMARY:
-[One sentence describing what this file change does]
+[One sentence: what does this change do?]
 
 ISSUES:
-[List each issue found, or write "No issues found" if clean]
+[List issues OR write "✅ No issues found"]
 
-Format each issue as:
-- [SEVERITY EMOJI] [Issue title]
-  Problem: [What is wrong]
-  Fix: [Exact fix with code example if possible]
-  Line: [Approximate line number from the diff]
+Each issue format:
+- [SEVERITY] **Title**
+  Problem: [specific description with line reference]
+  Fix:
 
-VERDICT:
-[APPROVE / REQUEST CHANGES / NEEDS REVIEW]
+[corrected code]
 
-SCORE:
-[X/10 code quality score]
+VERDICT: [APPROVE ✅ | REQUEST CHANGES ❌ | NEEDS REVIEW 👀]
+SCORE: [X/10]
 """
 
 def build_summary_prompt(all_reviews: list, pr_info: dict) -> str:
-    reviews_text = "\n\n".join(all_reviews)
-    return f"""You reviewed all files in this Pull Request.
+    reviews_text = "\n\n---\n\n".join(all_reviews)
+    return f"""You have reviewed all files in this Pull Request. Write a final summary.
 
 PR: {pr_info['title']}
 Author: {pr_info['author']}
 Files changed: {pr_info['changed_files']}
-Additions: +{pr_info['additions']} Deletions: -{pr_info['deletions']}
++{pr_info['additions']} additions / -{pr_info['deletions']} deletions
 
-Individual file reviews:
+File reviews:
 {reviews_text}
 
-Write a final PR summary comment for GitHub in this EXACT format:
+Write the GitHub PR comment in this EXACT format:
 
-## 🤖 AI Code Review Summary
+## 🤖 AI Code Review
 
-### PR Overview
-[2-3 sentences about what this PR does overall]
+### What this PR does
+[2 sentences max]
 
 ### Risk Level
-[🔴 HIGH / 🟠 MEDIUM / 🟢 LOW] — [One line reason]
+🔴 HIGH / 🟠 MEDIUM / 🟢 LOW — [one line reason]
 
-### Key Findings
-[Bullet list of the most important issues across all files]
+### Issues Found
+| Severity | File | Issue |
+|----------|------|-------|
+[table rows, or write "No issues found"]
 
-### Files Reviewed
-[List each file with a one-line verdict]
+### File Verdicts
+| File | Score | Verdict |
+|------|-------|---------|
+[table rows]
 
-### Final Verdict
-[APPROVE ✅ / REQUEST CHANGES ❌ / NEEDS REVIEW 👀]
+### Overall Verdict
+**[APPROVE ✅ / REQUEST CHANGES ❌ / NEEDS REVIEW 👀]**
 
----
-*Reviewed by AI Code Review Agent*
+> 🤖 Reviewed by AI Code Review Agent
 """
