@@ -45,7 +45,9 @@ Language hint: {hint}
 
 Diff (+ = added, - = removed):
 
+```
 {patch[:3000]}
+```
 
 Respond in this EXACT structure:
 
@@ -60,7 +62,9 @@ Each issue format:
   Problem: [specific description with line reference]
   Fix:
 
+```
 [corrected code]
+```
 
 VERDICT: [APPROVE ✅ | REQUEST CHANGES ❌ | NEEDS REVIEW 👀]
 SCORE: [X/10]
