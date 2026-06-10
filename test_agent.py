@@ -3,8 +3,8 @@ from src.agent import CodeReviewAgent
 agent = CodeReviewAgent()
 
 # Replace with your repo and PR number
-REPO = "your-username/your-repo"   # ← change this
-PR_NUMBER = 1                       # ← change this
+REPO = "Sudesh-2002/code-review-agent"   # ← change this
+PR_NUMBER = 2                       # ← change this
 
 review = agent.review_pr(REPO, PR_NUMBER)
 
