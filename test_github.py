@@ -3,7 +3,7 @@ from src.github_client import GitHubClient
 client = GitHubClient()
 
 # Replace with: "your-github-username/your-repo-name" and a real PR number
-REPO = "octocat/Hello-World"   # ← change this
+REPO = "Sudesh-2002/code-review-agent"   # ← change this
 PR_NUMBER = 1                   # ← change this to a real PR number
 
 print("--- PR Info ---")
