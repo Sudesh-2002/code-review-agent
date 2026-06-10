@@ -33,13 +33,14 @@ class CodeReviewAgent:
                     {"role": "user",   "content": prompt}
                 ],
                 temperature=0.2,
-                max_tokens=1500
+                max_tokens=2500
             )
             return response.choices[0].message.content
 
         return call_with_retry(_call, retries=4, base_delay=5)
 
-    def review_file(self, filename: str, patch: str, pr_info: dict) -> str:
+    def review_file(self, filename: str, patch: str, pr_info: dict,
+                       file_status: str = "modified") -> str:
         """Review a single file with caching"""
 
         # Skip empty diffs
@@ -59,7 +60,7 @@ class CodeReviewAgent:
 
         # Call AI
         logger.info(f"Reviewing {filename}...")
-        prompt = build_review_prompt(filename, patch, pr_info)
+        prompt = build_review_prompt(filename, patch, pr_info, file_status)
         review = self._ask_ai(prompt)
 
         # Save to cache
@@ -83,7 +84,8 @@ class CodeReviewAgent:
             review = self.review_file(
                 filename=file["filename"],
                 patch=file["patch"],
-                pr_info=pr_info
+                pr_info=pr_info,
+                file_status=file.get("status", "modified")
             )
             all_reviews.append(f"### `{file['filename']}`\n{review}")
             logger.debug(f"Done: {file['filename']}")
