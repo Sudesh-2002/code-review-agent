@@ -106,35 +106,28 @@ Language hint: {hint}
 
 Diff (+ = added, - = removed, context lines have no prefix):
 
-```
+```diff
 {patch_body}
 ```
 {truncation_notice}
-IMPORTANT REMINDERS before you respond:
-- Quote the exact diff line as evidence for every issue you flag.
-- Do NOT flag issues for code not visible in this diff.
-- If you are uncertain, write "✅ No issues found" — do not guess.
-
 Respond in this EXACT structure:
 
 SUMMARY:
 [One sentence: what does this change do?]
 
 ISSUES:
-[List issues OR write "✅ No issues found"]
+[List issues OR write "No issues found"]
 
 Each issue format:
-- [SEVERITY] **Title**
-  Evidence: `[quoted line from the diff]`
-  Problem: [specific description]
-  Fix:
+- [SEVERITY] Title
+  Evidence: (quote the exact line from the diff)
+  Problem: (specific description)
+  Fix: (show the corrected code inline, do not open a separate code block)
 
-```
-[corrected code]
-```
-
-VERDICT: [APPROVE ✅ | REQUEST CHANGES ❌ | NEEDS REVIEW 👀]
+VERDICT: [APPROVE / REQUEST CHANGES / NEEDS REVIEW]
 SCORE: [X/10]
+
+Remember: only flag issues with a quoted evidence line. If uncertain, write No issues found.
 """
 
 

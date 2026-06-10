@@ -33,6 +33,14 @@ def call_with_retry(func, *args, retries=4, base_delay=5, **kwargs):
                 )
                 time.sleep(wait)
 
+            # Groq content-quality error — retrying won't help, raise immediately
+            elif "looping content" in error_msg or "output is flagged" in error_msg:
+                logger.error(
+                    f"LLM output flagged for looping content — skipping retries. "
+                    f"Function: {func.__name__}"
+                )
+                raise
+
             # Unknown error — still retry
             else:
                 logger.error(
